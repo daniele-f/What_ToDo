@@ -1,4 +1,4 @@
-import {deleteRow, editRowText, exportJSON, getStore, importJSON, moveRow, Repeat, Row, RowType, setRowRepeat, toggleTodoDone} from './store';
+import {changeIndent, deleteRow, editRowText, exportJSON, getStore, importJSON, moveRow, Repeat, Row, RowType, setRowRepeat, toggleTodoDone} from './store';
 import {formatLocalDDMMYYYYHHmm, relativeHM} from './time';
 
 export type Mode = 'read' | 'edit';
@@ -235,12 +235,32 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
         function renderHeaderRow(row: Row): HTMLElement {
             const el = document.createElement('div');
             el.className = 'row header';
+            (el.style as any).marginLeft = `${(row as any).indent ? (row as any).indent * 24 : 0}px`;
             const text = document.createElement('div');
             text.textContent = row.text;
             el.appendChild(text);
             if (mode === 'edit') {
                 const actions = document.createElement('div');
                 actions.className = 'actions';
+
+                const outdentBtn = document.createElement('button');
+                outdentBtn.className = 'secondary';
+                outdentBtn.textContent = 'Outdent';
+                outdentBtn.setAttribute('aria-label', `Outdent header: ${row.text}`);
+                outdentBtn.addEventListener('click', () => {
+                    opts.onBeforeMutate?.();
+                    changeIndent(row.id, -1);
+                });
+
+                const indentBtn = document.createElement('button');
+                indentBtn.className = 'secondary';
+                indentBtn.textContent = 'Indent';
+                indentBtn.setAttribute('aria-label', `Indent header: ${row.text}`);
+                indentBtn.addEventListener('click', () => {
+                    opts.onBeforeMutate?.();
+                    changeIndent(row.id, 1);
+                });
+
                 const editBtn = document.createElement('button');
                 editBtn.className = 'secondary';
                 editBtn.textContent = 'Edit';
@@ -265,6 +285,8 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                         deleteRow(row.id);
                     }
                 });
+                actions.appendChild(outdentBtn);
+                actions.appendChild(indentBtn);
                 actions.appendChild(editBtn);
                 actions.appendChild(delBtn);
                 el.appendChild(actions);
@@ -277,6 +299,7 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
         function renderTodoRow(row: Row): HTMLElement {
             const el = document.createElement('div');
             el.className = 'row todo';
+            (el.style as any).marginLeft = `${(row as any).indent ? (row as any).indent * 24 : 0}px`;
 
             if (mode === 'read') {
                 const cb = document.createElement('input');
@@ -312,6 +335,25 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
             if (mode === 'edit') {
                 const actions = document.createElement('div');
                 actions.className = 'actions';
+
+                const outdentBtn = document.createElement('button');
+                outdentBtn.className = 'secondary';
+                outdentBtn.textContent = 'Outdent';
+                outdentBtn.setAttribute('aria-label', `Outdent todo: ${row.text}`);
+                outdentBtn.addEventListener('click', () => {
+                    opts.onBeforeMutate?.();
+                    changeIndent(row.id, -1);
+                });
+
+                const indentBtn = document.createElement('button');
+                indentBtn.className = 'secondary';
+                indentBtn.textContent = 'Indent';
+                indentBtn.setAttribute('aria-label', `Indent todo: ${row.text}`);
+                indentBtn.addEventListener('click', () => {
+                    opts.onBeforeMutate?.();
+                    changeIndent(row.id, 1);
+                });
+
                 const repSel = document.createElement('select');
                 for (const val of ['none', 'daily', 'weekly'] as Repeat[]) {
                     const o = document.createElement('option');
@@ -353,6 +395,8 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                     }
                 });
 
+                actions.appendChild(outdentBtn);
+                actions.appendChild(indentBtn);
                 actions.appendChild(repSel);
                 actions.appendChild(editBtn);
                 actions.appendChild(delBtn);

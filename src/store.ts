@@ -7,6 +7,7 @@ export type Row = {
     id: string;
     type: RowType;
     text: string;
+    indent: number; // hierarchy depth; 0 = top-level
     repeat: Repeat;
     done: boolean;
     lastCompletedAt?: string; // ISO (UTC)
@@ -47,10 +48,17 @@ export function getStore(): Store {
 }
 
 function sanitize(s: Store): Store {
-    // Coerce invalid repeat for headers to 'none'
-    for (const r of s.rows) {
+    // Coerce invalid repeat for headers to 'none' and ensure indent defaults
+    for (const r of s.rows as Row[]) {
         if (r.type === 'header' && r.repeat !== 'none') {
             r.repeat = 'none';
+        }
+        // Ensure indent is a non-negative integer
+        if (typeof (r as any).indent !== 'number' || !(isFinite((r as any).indent)) || (r as any).indent < 0) {
+            (r as any).indent = 0;
+        } else {
+            // normalize to integer
+            (r as any).indent = Math.max(0, Math.floor((r as any).indent));
         }
     }
     return s;
@@ -112,6 +120,8 @@ export function recomputeResets(now = new Date()): boolean {
             }
         }
     }
+    // After any resets, recompute parent todo statuses based on children
+    if (recomputeAncestorStatuses()) changed = true;
     if (changed) {
         persist();
         notify();
@@ -126,6 +136,7 @@ export function addRow(type: RowType, text: string, repeat: Repeat): Row {
         id,
         type,
         text: text.trim(),
+        indent: 0,
         repeat: type === 'header' ? 'none' : repeat,
         done: false,
         createdAt: now,
@@ -171,16 +182,117 @@ export function setRowRepeat(id: string, repeat: Repeat) {
     notify();
 }
 
-export function toggleTodoDone(id: string, done: boolean) {
-    const r = store.rows.find(x => x.id === id && x.type === 'todo');
+export function changeIndent(id: string, delta: number) {
+    const r = store.rows.find(x => x.id === id);
     if (!r) return;
+    const newIndent = Math.max(0, Math.floor((r.indent ?? 0) + delta));
+    if (newIndent === r.indent) return;
+    r.indent = newIndent;
+    r.updatedAt = nowISO();
+    // After indentation changes, recompute parent statuses globally
+    recomputeAncestorStatuses();
+    bumpLastEdited();
+    persist();
+    notify();
+}
+
+// === Hierarchy helpers ===
+function subtreeEndIndex(startIndex: number): number {
+    const base = store.rows[startIndex]?.indent ?? 0;
+    let i = startIndex + 1;
+    while (i < store.rows.length && (store.rows[i].indent ?? 0) > base) i++;
+    return i;
+}
+
+function applyDoneToSubtreeTodos(startIndex: number, done: boolean, now: string) {
+    const end = subtreeEndIndex(startIndex);
+    for (let i = startIndex + 1; i < end; i++) {
+        const r = store.rows[i];
+        if (r.type !== 'todo') continue;
+        if (r.done === done) continue;
+        r.done = done;
+        if (done) r.lastCompletedAt = now; else delete r.lastCompletedAt;
+        r.updatedAt = now;
+    }
+}
+
+function recomputeAncestorStatuses(): boolean {
+    let changed = false;
+    const now = nowISO();
+    for (let i = 0; i < store.rows.length; i++) {
+        const r = store.rows[i];
+        if (r.type !== 'todo') continue;
+        const end = subtreeEndIndex(i);
+        let anyTodo = false;
+        let allDone = true;
+        for (let j = i + 1; j < end; j++) {
+            const child = store.rows[j];
+            if (child.type !== 'todo') continue;
+            anyTodo = true;
+            if (!child.done) { allDone = false; break; }
+        }
+        if (anyTodo) {
+            if (r.done !== allDone) {
+                r.done = allDone;
+                if (allDone) r.lastCompletedAt = now; else delete r.lastCompletedAt;
+                r.updatedAt = now;
+                changed = true;
+            }
+        }
+    }
+    return changed;
+}
+
+function bubbleUpFromIndex(index: number): boolean {
+    let changed = false;
+    let curIndent = store.rows[index]?.indent ?? 0;
+    const now = nowISO();
+    for (let i = index - 1; i >= 0;) {
+        while (i >= 0 && store.rows[i].indent >= curIndent) i--;
+        if (i < 0) break;
+        const anc = store.rows[i];
+        const end = subtreeEndIndex(i);
+        let anyTodo = false;
+        let allDone = true;
+        for (let j = i + 1; j < end; j++) {
+            const child = store.rows[j];
+            if (child.type !== 'todo') continue;
+            anyTodo = true;
+            if (!child.done) { allDone = false; break; }
+        }
+        if (anc.type === 'todo' && anyTodo) {
+            if (anc.done !== allDone) {
+                anc.done = allDone;
+                if (allDone) anc.lastCompletedAt = now; else delete anc.lastCompletedAt;
+                anc.updatedAt = now;
+                changed = true;
+            }
+        }
+        curIndent = anc.indent;
+        i--; // continue scanning up
+    }
+    return changed;
+}
+
+export function toggleTodoDone(id: string, done: boolean) {
+    const idx = store.rows.findIndex(x => x.id === id && x.type === 'todo');
+    if (idx === -1) return;
+    const r = store.rows[idx];
+    const now = nowISO();
     r.done = done;
     if (done) {
-        r.lastCompletedAt = nowISO();
+        r.lastCompletedAt = now;
     } else {
         delete r.lastCompletedAt;
     }
-    r.updatedAt = nowISO();
+    r.updatedAt = now;
+
+    // Apply to subtree todos
+    applyDoneToSubtreeTodos(idx, done, now);
+
+    // Bubble up to parents
+    bubbleUpFromIndex(idx);
+
     bumpLastEdited();
     persist();
     notify();
