@@ -3,6 +3,8 @@
 A tiny, single‑page to‑do app built with plain TypeScript and Vite. It runs entirely in your browser, persists data to `localStorage`, and can be deployed as static files (e.g.,
 GitHub Pages). No backend required.
 
+https//daniele-f.github.io/What_ToDo/
+
 ## Features
 
 - Read mode (default):
