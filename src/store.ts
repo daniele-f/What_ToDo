@@ -217,3 +217,19 @@ export function importJSON(json: string): boolean {
         return false;
     }
 }
+
+export function moveRow(id: string, toIndex: number) {
+    const fromIndex = store.rows.findIndex(r => r.id === id);
+    if (fromIndex === -1) return;
+    // Clamp destination within bounds [0, rows.length]
+    const maxIndex = store.rows.length;
+    let dest = Math.max(0, Math.min(maxIndex, toIndex));
+    if (fromIndex === dest || fromIndex === dest - 1) return; // no-op
+    const [row] = store.rows.splice(fromIndex, 1);
+    if (!row) return;
+    if (fromIndex < dest) dest -= 1; // account for removal shift when moving down
+    store.rows.splice(dest, 0, row);
+    bumpLastEdited();
+    persist();
+    notify();
+}

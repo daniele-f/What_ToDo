@@ -1,4 +1,4 @@
-import {deleteRow, editRowText, exportJSON, getStore, importJSON, Repeat, Row, RowType, setRowRepeat, toggleTodoDone} from './store';
+import {deleteRow, editRowText, exportJSON, getStore, importJSON, moveRow, Repeat, Row, RowType, setRowRepeat, toggleTodoDone} from './store';
 import {formatLocalDDMMYYYYHHmm, relativeHM} from './time';
 
 export type Mode = 'read' | 'edit';
@@ -81,6 +81,51 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
 
         root.appendChild(topbar);
         root.appendChild(card);
+
+        const DRAG_CLASS_BEFORE = 'drop-before';
+        const DRAG_CLASS_AFTER = 'drop-after';
+        let draggingId: string | null = null;
+
+        function enableRowDrag(el: HTMLElement, rowId: string) {
+            el.setAttribute('draggable', 'true');
+            el.addEventListener('dragstart', (e: DragEvent) => {
+                draggingId = rowId;
+                el.classList.add('dragging');
+                try { e.dataTransfer?.setData('text/plain', rowId); } catch {}
+                if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+            });
+            el.addEventListener('dragend', () => {
+                el.classList.remove('dragging');
+                el.classList.remove(DRAG_CLASS_BEFORE, DRAG_CLASS_AFTER);
+                draggingId = null;
+            });
+            el.addEventListener('dragover', (e: DragEvent) => {
+                if (!draggingId) return;
+                e.preventDefault();
+                const rect = el.getBoundingClientRect();
+                const before = (e.clientY - rect.top) < rect.height / 2;
+                el.classList.toggle(DRAG_CLASS_BEFORE, before);
+                el.classList.toggle(DRAG_CLASS_AFTER, !before);
+                if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+            });
+            el.addEventListener('dragleave', () => {
+                el.classList.remove(DRAG_CLASS_BEFORE, DRAG_CLASS_AFTER);
+            });
+            el.addEventListener('drop', (e: DragEvent) => {
+                if (!draggingId) return;
+                e.preventDefault();
+                el.classList.remove(DRAG_CLASS_BEFORE, DRAG_CLASS_AFTER);
+                const rect = el.getBoundingClientRect();
+                const before = (e.clientY - rect.top) < rect.height / 2;
+                const store = getStore();
+                const fromIndex = store.rows.findIndex(r => r.id === draggingId);
+                const targetIndex = store.rows.findIndex(r => r.id === rowId);
+                if (fromIndex === -1 || targetIndex === -1) return;
+                let toIndex = before ? targetIndex : targetIndex + 1;
+                opts.onBeforeMutate?.();
+                moveRow(draggingId, toIndex);
+            });
+        }
 
         function buildEditControls(): HTMLElement {
             const controls = document.createElement('div');
@@ -223,6 +268,8 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                 actions.appendChild(editBtn);
                 actions.appendChild(delBtn);
                 el.appendChild(actions);
+                // Enable drag & drop reordering in edit mode
+                enableRowDrag(el, row.id);
             }
             return el;
         }
@@ -310,6 +357,8 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                 actions.appendChild(editBtn);
                 actions.appendChild(delBtn);
                 el.appendChild(actions);
+                // Enable drag & drop reordering in edit mode
+                enableRowDrag(el, row.id);
             } else {
                 const spacer = document.createElement('div');
                 el.appendChild(spacer);
