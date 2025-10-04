@@ -333,14 +333,24 @@ export function importJSON(json: string): boolean {
 export function moveRow(id: string, toIndex: number) {
     const fromIndex = store.rows.findIndex(r => r.id === id);
     if (fromIndex === -1) return;
+    const blockEnd = subtreeEndIndex(fromIndex); // exclusive
+    const blockLen = blockEnd - fromIndex;
     // Clamp destination within bounds [0, rows.length]
     const maxIndex = store.rows.length;
     let dest = Math.max(0, Math.min(maxIndex, toIndex));
-    if (fromIndex === dest || fromIndex === dest - 1) return; // no-op
-    const [row] = store.rows.splice(fromIndex, 1);
-    if (!row) return;
-    if (fromIndex < dest) dest -= 1; // account for removal shift when moving down
-    store.rows.splice(dest, 0, row);
+
+    // If destination falls inside the moving block's range, it's a no-op
+    if (dest > fromIndex && dest <= blockEnd) return;
+
+    // Take out the whole subtree block
+    const block = store.rows.splice(fromIndex, blockLen);
+
+    // When moving down, account for the removed block
+    if (fromIndex < dest) dest -= blockLen;
+
+    // Insert the block at the destination
+    store.rows.splice(dest, 0, ...block);
+
     bumpLastEdited();
     persist();
     notify();
