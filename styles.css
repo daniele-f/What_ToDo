@@ -145,6 +145,11 @@ button:focus, input:focus, select:focus {
     padding-top: 14px;
 }
 
+.row.todo {
+    background: rgba(127, 127, 127, 0.05);
+    padding-left: 30px;
+}
+
 .row.todo .text {
     display: flex;
     align-items: center;
@@ -177,3 +182,12 @@ button:focus, input:focus, select:focus {
     width: 18px;
     height: 18px;
 }
+
+/* Utility classes extracted from inline styles */
+.hidden { display: none; }
+.checkbox-spacer { width: 18px; height: 18px; }
+
+/* Optional: visuals for drag-and-drop states */
+.dragging { opacity: 0.6; }
+.drop-before { box-shadow: inset 0 3px 0 0 var(--accent); }
+.drop-after  { box-shadow: inset 0 -3px 0 0 var(--accent); }

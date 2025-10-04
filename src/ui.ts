@@ -204,7 +204,7 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
             const fileInput = document.createElement('input');
             fileInput.type = 'file';
             fileInput.accept = '.json,application/json';
-            fileInput.style.display = 'none';
+            fileInput.classList.add('hidden');
             fileInput.addEventListener('change', () => {
                 const file = fileInput.files?.[0];
                 if (!file) return;
@@ -291,7 +291,7 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                 el.appendChild(cb);
             } else {
                 const spacer = document.createElement('div');
-                spacer.style.width = '18px';
+                spacer.className = 'checkbox-spacer';
                 el.appendChild(spacer);
             }
 
