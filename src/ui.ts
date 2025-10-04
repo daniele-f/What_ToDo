@@ -233,33 +233,48 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
         }
 
         function renderHeaderRow(row: Row): HTMLElement {
+            const line = document.createElement('div');
+            line.className = 'row-line';
+
             const el = document.createElement('div');
             el.className = 'row header';
             (el.style as any).marginLeft = `${(row as any).indent ? (row as any).indent * 24 : 0}px`;
+
             const text = document.createElement('div');
             text.textContent = row.text;
             el.appendChild(text);
+
             if (mode === 'edit') {
-                const actions = document.createElement('div');
-                actions.className = 'actions';
+                const leading = document.createElement('div');
+                leading.className = 'indent-group';
 
                 const outdentBtn = document.createElement('button');
-                outdentBtn.className = 'secondary';
-                outdentBtn.textContent = 'Outdent';
+                outdentBtn.className = 'icon icon-left';
+                outdentBtn.textContent = '<';
+                outdentBtn.title = 'Outdent (Shift+Tab)';
                 outdentBtn.setAttribute('aria-label', `Outdent header: ${row.text}`);
+                outdentBtn.disabled = (row.indent ?? 0) === 0;
                 outdentBtn.addEventListener('click', () => {
                     opts.onBeforeMutate?.();
                     changeIndent(row.id, -1);
                 });
 
                 const indentBtn = document.createElement('button');
-                indentBtn.className = 'secondary';
-                indentBtn.textContent = 'Indent';
+                indentBtn.className = 'icon icon-right';
+                indentBtn.textContent = '>';
+                indentBtn.title = 'Indent (Tab)';
                 indentBtn.setAttribute('aria-label', `Indent header: ${row.text}`);
                 indentBtn.addEventListener('click', () => {
                     opts.onBeforeMutate?.();
                     changeIndent(row.id, 1);
                 });
+
+                leading.appendChild(outdentBtn);
+                leading.appendChild(indentBtn);
+                line.appendChild(leading);
+
+                const actions = document.createElement('div');
+                actions.className = 'actions';
 
                 const editBtn = document.createElement('button');
                 editBtn.className = 'secondary';
@@ -276,8 +291,9 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                     }
                 });
                 const delBtn = document.createElement('button');
-                delBtn.className = 'danger';
-                delBtn.textContent = 'Delete';
+                delBtn.className = 'icon danger';
+                delBtn.textContent = '🗑︎';
+                delBtn.title = 'Delete';
                 delBtn.setAttribute('aria-label', `Delete header: ${row.text}`);
                 delBtn.addEventListener('click', () => {
                     if (confirm('Delete this header?')) {
@@ -285,18 +301,21 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                         deleteRow(row.id);
                     }
                 });
-                actions.appendChild(outdentBtn);
-                actions.appendChild(indentBtn);
                 actions.appendChild(editBtn);
                 actions.appendChild(delBtn);
                 el.appendChild(actions);
                 // Enable drag & drop reordering in edit mode
-                enableRowDrag(el, row.id);
+                enableRowDrag(line, row.id);
             }
-            return el;
+
+            line.appendChild(el);
+            return line;
         }
 
         function renderTodoRow(row: Row): HTMLElement {
+            const line = document.createElement('div');
+            line.className = 'row-line';
+
             const el = document.createElement('div');
             el.className = 'row todo';
             (el.style as any).marginLeft = `${(row as any).indent ? (row as any).indent * 24 : 0}px`;
@@ -333,26 +352,36 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
             el.appendChild(text);
 
             if (mode === 'edit') {
-                const actions = document.createElement('div');
-                actions.className = 'actions';
+                const leading = document.createElement('div');
+                leading.className = 'indent-group';
 
                 const outdentBtn = document.createElement('button');
-                outdentBtn.className = 'secondary';
-                outdentBtn.textContent = 'Outdent';
+                outdentBtn.className = 'icon icon-left';
+                outdentBtn.textContent = '<';
+                outdentBtn.title = 'Outdent (Shift+Tab)';
                 outdentBtn.setAttribute('aria-label', `Outdent todo: ${row.text}`);
+                outdentBtn.disabled = (row.indent ?? 0) === 0;
                 outdentBtn.addEventListener('click', () => {
                     opts.onBeforeMutate?.();
                     changeIndent(row.id, -1);
                 });
 
                 const indentBtn = document.createElement('button');
-                indentBtn.className = 'secondary';
-                indentBtn.textContent = 'Indent';
+                indentBtn.className = 'icon icon-right';
+                indentBtn.textContent = '>';
+                indentBtn.title = 'Indent (Tab)';
                 indentBtn.setAttribute('aria-label', `Indent todo: ${row.text}`);
                 indentBtn.addEventListener('click', () => {
                     opts.onBeforeMutate?.();
                     changeIndent(row.id, 1);
                 });
+
+                leading.appendChild(outdentBtn);
+                leading.appendChild(indentBtn);
+                line.appendChild(leading);
+
+                const actions = document.createElement('div');
+                actions.className = 'actions';
 
                 const repSel = document.createElement('select');
                 for (const val of ['none', 'daily', 'weekly'] as Repeat[]) {
@@ -385,8 +414,9 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                 });
 
                 const delBtn = document.createElement('button');
-                delBtn.className = 'danger';
-                delBtn.textContent = 'Delete';
+                delBtn.className = 'icon danger';
+                delBtn.textContent = '🗑︎';
+                delBtn.title = 'Delete';
                 delBtn.setAttribute('aria-label', `Delete todo: ${row.text}`);
                 delBtn.addEventListener('click', () => {
                     if (confirm('Delete this todo?')) {
@@ -395,20 +425,19 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                     }
                 });
 
-                actions.appendChild(outdentBtn);
-                actions.appendChild(indentBtn);
                 actions.appendChild(repSel);
                 actions.appendChild(editBtn);
                 actions.appendChild(delBtn);
                 el.appendChild(actions);
                 // Enable drag & drop reordering in edit mode
-                enableRowDrag(el, row.id);
+                enableRowDrag(line, row.id);
             } else {
                 const spacer = document.createElement('div');
                 el.appendChild(spacer);
             }
 
-            return el;
+            line.appendChild(el);
+            return line;
         }
     }
 

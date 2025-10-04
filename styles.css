@@ -103,6 +103,28 @@ button.danger {
     color: #fff;
 }
 
+/* Iconic compact buttons */
+button.icon {
+    background: transparent;
+    color: var(--fg);
+    border: 1px solid var(--border);
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 8px; /* rounded square */
+    line-height: 1;
+}
+button.icon:hover {
+    background: rgba(127, 127, 127, 0.08);
+}
+button:disabled,
+button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 button:focus, input:focus, select:focus {
     outline: 3px solid #ffbf47; /* High-contrast focus outline */
     outline-offset: 2px;
@@ -176,6 +198,13 @@ button:focus, input:focus, select:focus {
 .actions {
     display: flex;
     gap: 6px;
+    align-items: center;
+}
+
+.indent-group {
+    display: inline-flex;
+    gap: 0; /* join the two buttons */
+    margin-right: 6px;
 }
 
 .checkbox {
@@ -191,3 +220,46 @@ button:focus, input:focus, select:focus {
 .dragging { opacity: 0.6; }
 .drop-before { box-shadow: inset 0 3px 0 0 var(--accent); }
 .drop-after  { box-shadow: inset 0 -3px 0 0 var(--accent); }
+
+
+/* Row line wrapper to place left-side controls outside the row box */
+.row-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Ensure left indent group doesn't add extra margin when used outside */
+.row-line > .indent-group { margin-right: 0; }
+
+/* Make drop indicators visible when applying to wrapper */
+.row-line.drop-before .row { box-shadow: inset 0 3px 0 0 var(--accent); }
+.row-line.drop-after .row { box-shadow: inset 0 -3px 0 0 var(--accent); }
+
+/* Segmented control styling for indent/outdent buttons */
+.indent-group .icon-left {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.indent-group .icon-right {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+/* Collapse the shared border so buttons appear joined */
+.indent-group .icon + .icon {
+    margin-left: -1px;
+}
+
+
+/* Ensure trashcan icon buttons remain red with black icon */
+button.icon.danger {
+    background: #ef4444;
+    color: #000;
+    border-color: #ef4444;
+    font-size: 24px;
+    font-weight: bold;
+}
+button.icon.danger:hover {
+    background: #dc2626;
+    color: #000;
+}
