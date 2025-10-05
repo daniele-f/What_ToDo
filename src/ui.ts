@@ -83,13 +83,47 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                 const groupFirst = inGroup && prevIndent < indent;
                 const groupLast = inGroup && nextIndent < indent;
 
-                const lineEl = row.type === 'header' ? renderHeaderRow(row) : renderTodoRow(row);
-                if (hasChildren) lineEl.classList.add('group-parent');
-                if (inGroup) lineEl.classList.add('group-child');
-                if (groupFirst) lineEl.classList.add('group-first');
-                if (groupLast) lineEl.classList.add('group-last');
+                if (hasChildren) {
+                    const block = document.createElement('div');
+                    block.className = 'group-block';
+                    (block.style as any).marginLeft = `${indent ? indent * 24 : 0}px`;
 
-                list.appendChild(lineEl);
+                    const parentEl = row.type === 'header' ? renderHeaderRow(row) : renderTodoRow(row);
+                    parentEl.classList.add('group-parent');
+                    // Rebase the margin-left so the border wraps tightly
+                    const parentRowDiv = parentEl.querySelector('.row') as HTMLElement | null;
+                    if (parentRowDiv) (parentRowDiv.style as any).marginLeft = `${0}px`;
+                    block.appendChild(parentEl);
+
+                    let j = i + 1;
+                    while (j < rows.length && (((rows[j] as any).indent ? (rows[j] as any).indent : 0) > indent)) {
+                        const child = rows[j];
+                        const cIndent = (child as any).indent ? (child as any).indent : 0;
+                        const pIndent = ((rows[j-1] as any).indent ? (rows[j-1] as any).indent : 0);
+                        const nIndent = j < rows.length - 1 ? ((rows[j+1] as any).indent ? (rows[j+1] as any).indent : 0) : 0;
+                        const cInGroup = cIndent > 0;
+                        const cFirst = cInGroup && pIndent < cIndent;
+                        const cLast = cInGroup && nIndent < cIndent;
+
+                        const childEl = child.type === 'header' ? renderHeaderRow(child) : renderTodoRow(child);
+                        if (cInGroup) childEl.classList.add('group-child');
+                        if (cFirst) childEl.classList.add('group-first');
+                        if (cLast) childEl.classList.add('group-last');
+                        // Rebase child margins relative to the parent group
+                        const childRowDiv = childEl.querySelector('.row') as HTMLElement | null;
+                        if (childRowDiv) (childRowDiv.style as any).marginLeft = `${(cIndent - indent) * 24}px`;
+                        block.appendChild(childEl);
+                        j++;
+                    }
+                    list.appendChild(block);
+                    i = j - 1; // skip the consumed subtree
+                } else {
+                    const lineEl = row.type === 'header' ? renderHeaderRow(row) : renderTodoRow(row);
+                    if (inGroup) lineEl.classList.add('group-child');
+                    if (groupFirst) lineEl.classList.add('group-first');
+                    if (groupLast) lineEl.classList.add('group-last');
+                    list.appendChild(lineEl);
+                }
             }
             card.appendChild(list);
         }

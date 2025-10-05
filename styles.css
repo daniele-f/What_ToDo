@@ -273,7 +273,13 @@ button.icon.danger:hover {
 .row-line.group-first .row { border-top-left-radius: 12px; }
 .row-line.group-last .row { border-bottom-left-radius: 12px; }
 
-/* Slightly emphasize rows that have children (group headers) */
 .row-line.group-parent .row {
     background: rgba(127, 127, 127, 0.08);
+}
+
+/* Group wrapper around a parent row and its subtree */
+.group-block {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
 }
