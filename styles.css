@@ -165,7 +165,7 @@ button:focus, input:focus, select:focus {
     grid-template-columns: 1fr auto;
     font-weight: 700;
     font-size: 1.1rem;
-    padding-top: 14px;
+    padding-left: 16px;
 }
 
 .row.todo {
@@ -282,5 +282,5 @@ button.icon.danger:hover {
 .group-block {
     border: 1px solid var(--border);
     border-radius: 10px;
-    padding: 6px;
+    padding: 6px 6px 12px 6px;
 }
