@@ -169,7 +169,7 @@ button:focus, input:focus, select:focus {
 
 .row.todo {
     background: rgba(127, 127, 127, 0.05);
-    padding-left: 30px;
+    padding-left: 16px;
 }
 
 .row.todo .text {
@@ -262,4 +262,18 @@ button.icon.danger {
 button.icon.danger:hover {
     background: #dc2626;
     color: #000;
+}
+
+.row-line.group-child .row {
+    background: rgba(127, 127, 127, 0.06);
+    border-left: 3px solid var(--accent);
+}
+
+/* Rounded left edges for grouped blocks */
+.row-line.group-first .row { border-top-left-radius: 12px; }
+.row-line.group-last .row { border-bottom-left-radius: 12px; }
+
+/* Slightly emphasize rows that have children (group headers) */
+.row-line.group-parent .row {
+    background: rgba(127, 127, 127, 0.08);
 }

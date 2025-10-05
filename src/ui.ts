@@ -72,9 +72,24 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
         } else {
             const list = document.createElement('div');
             list.className = 'list';
-            for (const row of getStore().rows) {
-                if (row.type === 'header') list.appendChild(renderHeaderRow(row));
-                else list.appendChild(renderTodoRow(row));
+            const rows = getStore().rows;
+            for (let i = 0; i < rows.length; i++) {
+                const row = rows[i];
+                const indent = (row as any).indent ? (row as any).indent : 0;
+                const prevIndent = i > 0 ? ((rows[i-1] as any).indent ? (rows[i-1] as any).indent : 0) : 0;
+                const nextIndent = i < rows.length - 1 ? ((rows[i+1] as any).indent ? (rows[i+1] as any).indent : 0) : 0;
+                const hasChildren = nextIndent > indent;
+                const inGroup = indent > 0;
+                const groupFirst = inGroup && prevIndent < indent;
+                const groupLast = inGroup && nextIndent < indent;
+
+                const lineEl = row.type === 'header' ? renderHeaderRow(row) : renderTodoRow(row);
+                if (hasChildren) lineEl.classList.add('group-parent');
+                if (inGroup) lineEl.classList.add('group-child');
+                if (groupFirst) lineEl.classList.add('group-first');
+                if (groupLast) lineEl.classList.add('group-last');
+
+                list.appendChild(lineEl);
             }
             card.appendChild(list);
         }
