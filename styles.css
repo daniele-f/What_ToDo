@@ -284,3 +284,20 @@ button.icon.danger:hover {
     border-radius: 10px;
     padding: 6px 6px 12px 6px;
 }
+
+
+/* Drag handle for row reordering in edit mode */
+.drag-handle {
+    width: 28px;
+    height: 28px;
+    display: inline-grid;
+    place-items: center;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    cursor: grab;
+    user-select: none;
+    line-height: 1;
+}
+.row-line:hover .drag-handle { color: var(--fg); border-color: var(--muted); }
+.row-line.dragging .drag-handle { cursor: grabbing; }

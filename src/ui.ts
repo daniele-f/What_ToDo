@@ -322,6 +322,14 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                 leading.appendChild(indentBtn);
                 line.appendChild(leading);
 
+                // Drag handle to indicate rows are draggable
+                const dragHandle = document.createElement('div');
+                dragHandle.className = 'drag-handle';
+                dragHandle.title = 'Drag to reorder';
+                dragHandle.setAttribute('aria-label', `Drag to reorder: ${row.text}`);
+                dragHandle.textContent = '☰';
+                line.appendChild(dragHandle);
+
                 const actions = document.createElement('div');
                 actions.className = 'actions';
 
@@ -428,6 +436,14 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
                 leading.appendChild(outdentBtn);
                 leading.appendChild(indentBtn);
                 line.appendChild(leading);
+
+                // Drag handle to indicate rows are draggable
+                const dragHandle = document.createElement('div');
+                dragHandle.className = 'drag-handle';
+                dragHandle.title = 'Drag to reorder';
+                dragHandle.setAttribute('aria-label', `Drag to reorder: ${row.text}`);
+                dragHandle.textContent = '☰';
+                line.appendChild(dragHandle);
 
                 const actions = document.createElement('div');
                 actions.className = 'actions';
