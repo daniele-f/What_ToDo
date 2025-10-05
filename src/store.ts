@@ -25,6 +25,11 @@ export const STORAGE_KEY = 'todo-store-v1';
 
 let store: Store = loadFromLocalStorage();
 
+// When true, mutations update in-memory state and notify UI, but do not persist to localStorage
+// and do not update lastEditedAt until explicitly committed.
+let suspendPersistence = false;
+let hasPendingEdits = false;
+
 const listeners: Array<() => void> = [];
 
 function notify() {
@@ -85,10 +90,12 @@ function loadFromLocalStorage(): Store {
 }
 
 function persist() {
+    if (suspendPersistence) { hasPendingEdits = true; return; }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
 }
 
 function bumpLastEdited() {
+    if (suspendPersistence) { hasPendingEdits = true; return; }
     store.lastEditedAt = nowISO();
 }
 
@@ -328,6 +335,21 @@ export function importJSON(json: string): boolean {
     } catch {
         return false;
     }
+}
+
+export function setPersistenceSuspended(suspend: boolean) {
+    // When enabling suspension, mark new pending edits from now on.
+    suspendPersistence = suspend;
+}
+
+export function commitPendingEdits() {
+    if (!hasPendingEdits) { suspendPersistence = false; return; }
+    // On commit, set lastEditedAt to now and persist the current store snapshot.
+    store.lastEditedAt = nowISO();
+    suspendPersistence = false;
+    hasPendingEdits = false;
+    persist();
+    notify();
 }
 
 export function moveRow(id: string, toIndex: number) {

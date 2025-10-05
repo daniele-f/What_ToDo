@@ -1,4 +1,4 @@
-import {getStore} from '../store';
+import {commitPendingEdits, getStore, setPersistenceSuspended} from '../store';
 import {formatLocalDDMMYYYYHHmm, relativeHM} from '../time';
 import type {UiOptions, Mode, RenderContext} from './types';
 import {buildEditControls} from './controls';
@@ -46,7 +46,15 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
     };
     setModeButtonText();
     modeBtn.addEventListener('click', () => {
-      mode = mode === 'read' ? 'edit' : 'read';
+      if (mode === 'read') {
+        // Entering edit mode: suspend persistence so edits are not saved until Save is pressed
+        setPersistenceSuspended(true);
+        mode = 'edit';
+      } else {
+        // Leaving edit mode via Save: commit pending edits and re-enable persistence
+        commitPendingEdits();
+        mode = 'read';
+      }
       render();
     });
 
