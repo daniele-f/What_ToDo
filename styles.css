@@ -154,6 +154,7 @@ button:focus, input:focus, select:focus {
     gap: 10px;
     padding: 8px 10px;
     border-radius: 8px;
+    margin-top: 8px;
 }
 
 .row:hover {
