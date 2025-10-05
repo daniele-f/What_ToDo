@@ -1,4 +1,4 @@
-import {initUI} from './ui';
+import {initUI} from './ui/index';
 import {recomputeResets, reloadFromLocalStorage, STORAGE_KEY, subscribe} from './store';
 
 // Entry point
