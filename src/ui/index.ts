@@ -1,5 +1,4 @@
 import {commitPendingEdits, getStore, setPersistenceSuspended, undoPendingEdits, getHasPendingEdits} from '../store';
-import {formatLocalDDMMYYYYHHmm, relativeHM} from '../time';
 import type {UiOptions, Mode, RenderContext} from './types';
 import {buildEditControls} from './controls';
 import {createRowDragHandler} from './drag';
@@ -20,23 +19,8 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
     const left = document.createElement('div');
     left.className = 'left';
 
-    const lastEditedSpan = document.createElement('div');
-    lastEditedSpan.className = 'meta';
-    const abs = store.lastEditedAt ? formatLocalDDMMYYYYHHmm(new Date(store.lastEditedAt)) : 'Never';
-    const rel = store.lastEditedAt ? ` (${relativeHM(new Date(store.lastEditedAt), new Date())})` : '';
-    lastEditedSpan.id = 'last-edited';
-    lastEditedSpan.textContent = `Last edited at: ${abs}${rel}`;
-    left.appendChild(lastEditedSpan);
-
     const right = document.createElement('div');
     right.className = 'right';
-
-    const refreshBtn = document.createElement('button');
-    refreshBtn.textContent = 'Refresh';
-    refreshBtn.setAttribute('aria-label', 'Refresh page');
-    refreshBtn.addEventListener('click', () => {
-      location.reload();
-    });
 
     const modeBtn = document.createElement('button');
     modeBtn.className = 'secondary';
@@ -62,7 +46,6 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
       render();
     });
 
-    left.appendChild(refreshBtn);
 
         if (mode === 'edit') {
           const undoBtn = document.createElement('button');
