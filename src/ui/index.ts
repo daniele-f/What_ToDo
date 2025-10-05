@@ -1,4 +1,4 @@
-import {commitPendingEdits, getStore, setPersistenceSuspended, undoPendingEdits} from '../store';
+import {commitPendingEdits, getStore, setPersistenceSuspended, undoPendingEdits, getHasPendingEdits} from '../store';
 import {formatLocalDDMMYYYYHHmm, relativeHM} from '../time';
 import type {UiOptions, Mode, RenderContext} from './types';
 import {buildEditControls} from './controls';
@@ -42,7 +42,11 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
     modeBtn.className = 'secondary';
     modeBtn.setAttribute('aria-label', 'Toggle edit mode');
     const setModeButtonText = () => {
-      modeBtn.textContent = mode === 'read' ? 'Edit mode' : 'Save';
+      if (mode === 'read') {
+        modeBtn.textContent = 'Edit mode';
+      } else {
+        modeBtn.textContent = getHasPendingEdits() ? 'Save Changes' : 'Exit Edit Mode';
+      }
     };
     setModeButtonText();
     modeBtn.addEventListener('click', () => {
@@ -65,7 +69,9 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
           undoBtn.className = 'secondary';
           undoBtn.textContent = 'Undo';
           undoBtn.setAttribute('aria-label', 'Undo changes since entering edit mode');
+          undoBtn.disabled = !getHasPendingEdits();
           undoBtn.addEventListener('click', () => {
+            if (undoBtn.disabled) return;
             // Discard all in-memory edits made during this edit session
             undoPendingEdits();
             // Stay in edit mode; just re-render to reflect original state
