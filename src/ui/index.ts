@@ -1,4 +1,4 @@
-import {commitPendingEdits, getStore, setPersistenceSuspended} from '../store';
+import {commitPendingEdits, getStore, setPersistenceSuspended, undoPendingEdits} from '../store';
 import {formatLocalDDMMYYYYHHmm, relativeHM} from '../time';
 import type {UiOptions, Mode, RenderContext} from './types';
 import {buildEditControls} from './controls';
@@ -59,10 +59,25 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
     });
 
     left.appendChild(refreshBtn);
-    right.appendChild(modeBtn);
 
-    topbar.appendChild(left);
-    topbar.appendChild(right);
+        if (mode === 'edit') {
+          const undoBtn = document.createElement('button');
+          undoBtn.className = 'secondary';
+          undoBtn.textContent = 'Undo';
+          undoBtn.setAttribute('aria-label', 'Undo changes since entering edit mode');
+          undoBtn.addEventListener('click', () => {
+            // Discard all in-memory edits made during this edit session
+            undoPendingEdits();
+            // Stay in edit mode; just re-render to reflect original state
+            render();
+          });
+          right.appendChild(undoBtn);
+        }
+
+        right.appendChild(modeBtn);
+
+        topbar.appendChild(left);
+        topbar.appendChild(right);
 
     const card = document.createElement('div');
     card.className = 'card';

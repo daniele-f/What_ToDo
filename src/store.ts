@@ -352,6 +352,14 @@ export function commitPendingEdits() {
     notify();
 }
 
+export function undoPendingEdits() {
+    // Discard in-memory edits by reloading from persisted snapshot
+    // Stay in suspended state to keep edit mode semantics
+    reloadFromLocalStorage();
+    hasPendingEdits = false;
+    // Do not resume persistence here; caller (UI) is still in edit mode
+}
+
 export function moveRow(id: string, toIndex: number) {
     const fromIndex = store.rows.findIndex(r => r.id === id);
     if (fromIndex === -1) return;
