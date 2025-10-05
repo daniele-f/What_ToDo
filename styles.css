@@ -221,6 +221,9 @@ button:focus, input:focus, select:focus {
 .dragging { opacity: 0.6; }
 .drop-before { box-shadow: inset 0 3px 0 0 var(--accent); }
 .drop-after  { box-shadow: inset 0 -3px 0 0 var(--accent); }
+/* Invalid drop indicator overrides to red */
+.drop-invalid.drop-before { box-shadow: inset 0 3px 0 0 #ef4444; }
+.drop-invalid.drop-after  { box-shadow: inset 0 -3px 0 0 #ef4444; }
 
 
 /* Row line wrapper to place left-side controls outside the row box */
@@ -236,6 +239,9 @@ button:focus, input:focus, select:focus {
 /* Make drop indicators visible when applying to wrapper */
 .row-line.drop-before .row { box-shadow: inset 0 3px 0 0 var(--accent); }
 .row-line.drop-after .row { box-shadow: inset 0 -3px 0 0 var(--accent); }
+/* Red override when spot is invalid */
+.row-line.drop-invalid.drop-before .row { box-shadow: inset 0 3px 0 0 #ef4444; }
+.row-line.drop-invalid.drop-after .row { box-shadow: inset 0 -3px 0 0 #ef4444; }
 
 /* Segmented control styling for indent/outdent buttons */
 .indent-group .icon-left {
