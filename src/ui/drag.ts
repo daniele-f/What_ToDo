@@ -8,8 +8,33 @@ export function createRowDragHandler(opts: UiOptions) {
   let draggingId: string | null = null;
 
   function enableRowDrag(el: HTMLElement, rowId: string) {
-    el.setAttribute('draggable', 'true');
+    // Only allow starting a drag when the dedicated drag-handle is used
+    const handle = el.querySelector('.drag-handle') as HTMLElement | null;
+
+    function setDraggable(on: boolean) {
+      el.setAttribute('draggable', on ? 'true' : 'false');
+    }
+
+    setDraggable(false);
+
+    if (handle) {
+      const enableForPointerDown = (_e: Event) => setDraggable(true);
+      const disableAfterPointer = () => setDraggable(false);
+      // Enable dragging when user presses on the handle
+      handle.addEventListener('mousedown', enableForPointerDown);
+      handle.addEventListener('touchstart', enableForPointerDown, {passive: true} as any);
+      // Disable when pointer is released anywhere
+      document.addEventListener('mouseup', disableAfterPointer);
+      document.addEventListener('touchend', disableAfterPointer);
+      document.addEventListener('touchcancel', disableAfterPointer);
+    } else {
+      // If no handle exists (shouldn't happen in edit mode), keep dragging disabled
+      setDraggable(false);
+    }
+
     el.addEventListener('dragstart', (e: DragEvent) => {
+      // Guard: if drag wasn't initiated via the handle, cancel
+      if (el.getAttribute('draggable') !== 'true') { try { e.preventDefault(); } catch {} return; }
       draggingId = rowId;
       el.classList.add('dragging');
       try { e.dataTransfer?.setData('text/plain', rowId); } catch {}
@@ -19,6 +44,8 @@ export function createRowDragHandler(opts: UiOptions) {
       el.classList.remove('dragging');
       el.classList.remove(DRAG_CLASS_BEFORE, DRAG_CLASS_AFTER, DRAG_CLASS_INVALID);
       draggingId = null;
+      // Ensure row isn't draggable anymore until the handle is used again
+      setDraggable(false);
     });
     el.addEventListener('dragover', (e: DragEvent) => {
       if (!draggingId) return;
