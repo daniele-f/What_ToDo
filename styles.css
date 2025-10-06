@@ -292,6 +292,24 @@ button.icon.danger:hover {
 }
 
 
+/* Edit mode: wrap entire row (including arrows, drag, content, actions) */
+.mode-edit .list { gap: 6px; }
+.mode-edit .row-line {
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(127, 127, 127, 0.04);
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.mode-edit .row-line:hover {
+    background: rgba(127, 127, 127, 0.10);
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+/* Neutralize inner row backgrounds in edit mode to avoid double layers */
+.mode-edit .row { background: transparent; }
+.mode-edit .row:hover { background: transparent; }
+
 /* Drag handle for row reordering in edit mode */
 .drag-handle {
     width: 28px;

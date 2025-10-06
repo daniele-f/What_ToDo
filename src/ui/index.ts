@@ -12,6 +12,8 @@ export function initUI(root: HTMLElement, opts: UiOptions = {}) {
     const store = getStore();
 
     root.innerHTML = '';
+    // Mark edit mode on the root for CSS styling
+    if (mode === 'edit') root.classList.add('mode-edit'); else root.classList.remove('mode-edit');
 
     const topbar = document.createElement('div');
     topbar.className = 'topbar';
