@@ -40,10 +40,7 @@ export function buildEditControls(opts: UiOptions): HTMLElement {
   typeSel.addEventListener('change', syncRepeatEnabled);
   syncRepeatEnabled();
 
-  const addBtn = document.createElement('button');
-  addBtn.textContent = 'Add';
-  addBtn.setAttribute('aria-label', 'Add new row');
-  addBtn.addEventListener('click', () => {
+  function doAdd() {
     const type = typeSel.value as RowType;
     const text = textInput.value.trim();
     const repeat = repeatSel.value as Repeat;
@@ -53,6 +50,19 @@ export function buildEditControls(opts: UiOptions): HTMLElement {
     addRow(type, text, repeat);
     textInput.value = '';
     textInput.focus();
+  }
+
+  const addBtn = document.createElement('button');
+  addBtn.textContent = 'Add';
+  addBtn.setAttribute('aria-label', 'Add new row');
+  addBtn.addEventListener('click', () => doAdd());
+
+  // Pressing Enter while typing text should add the item
+  textInput.addEventListener('keydown', (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      doAdd();
+    }
   });
 
   const exportBtn = document.createElement('button');
